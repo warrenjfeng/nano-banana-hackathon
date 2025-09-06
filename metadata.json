@@ -1,0 +1,5 @@
+{
+  "name": "Virtual Style Try-On",
+  "description": "Upload a photo of yourself and an image of a hairstyle, clothing item, or accessory. The app will use AI to generate a realistic visualization of you wearing that style.",
+  "requestFramePermissions": []
+}
