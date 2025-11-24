@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, Modality } from "@google/genai";
 import type { ImageFile, GenerationResult, StyleRequest } from '../types';
-import { getHairstyleById } from '../constants/hairstyles';
+import { getHairstyleById, getClothingById, getAccessoryById } from '../constants/hairstyles';
 
 const PROMPT = `Based on the two images provided, please perform a realistic virtual try-on.
 The first image is of a person. The second image contains a style item (hairstyle, clothing, accessory, etc.).
@@ -44,7 +44,9 @@ export const generateVirtualTryOn = async (
     
     // If it's a preset, use the optimized prompt
     if (styleRequest.presetId) {
-      const preset = getHairstyleById(styleRequest.presetId);
+      let preset = getHairstyleById(styleRequest.presetId);
+      if (!preset) preset = getClothingById(styleRequest.presetId);
+      if (!preset) preset = getAccessoryById(styleRequest.presetId);
       if (preset) {
         stylePrompt = preset.prompt;
       }

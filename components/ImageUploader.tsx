@@ -7,6 +7,7 @@ interface ImageUploaderProps {
   title: string;
   description: string;
   onImageUpload: (file: ImageFile | null) => void;
+  currentImage?: ImageFile | null;
 }
 
 const fileToData = (file: File): Promise<ImageFile> => {
@@ -22,7 +23,7 @@ const fileToData = (file: File): Promise<ImageFile> => {
 };
 
 
-export const ImageUploader: React.FC<ImageUploaderProps> = ({ id, title, description, onImageUpload }) => {
+export const ImageUploader: React.FC<ImageUploaderProps> = ({ id, title, description, onImageUpload, currentImage }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
@@ -225,38 +226,22 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ id, title, descrip
     }
   }, [isCameraActive]);
 
-  // Handle paste events for image data
+  // Update preview when currentImage changes (for paste functionality)
   React.useEffect(() => {
-    const handlePaste = async (event: ClipboardEvent) => {
-      const items = event.clipboardData?.items;
-      if (!items) return;
-
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.type.startsWith('image/')) {
-          event.preventDefault();
-          const file = item.getAsFile();
-          if (file) {
-            try {
-              const imageData = await fileToData(file);
-              if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-              }
-              setPreviewUrl(URL.createObjectURL(file));
-              setFileName('Pasted Image');
-              onImageUpload(imageData);
-            } catch (error) {
-              console.error('Error processing pasted image:', error);
-            }
-          }
-          break;
-        }
+    if (currentImage) {
+      const dataUrl = `data:${currentImage.mimeType};base64,${currentImage.base64}`;
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
       }
-    };
-
-    document.addEventListener('paste', handlePaste);
-    return () => document.removeEventListener('paste', handlePaste);
-  }, [onImageUpload, previewUrl]);
+      setPreviewUrl(dataUrl);
+      setFileName('Pasted Image');
+    } else if (!currentImage && previewUrl) {
+      // Clear preview if currentImage is null
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+      setFileName(null);
+    }
+  }, [currentImage, previewUrl]);
 
   // Cleanup camera stream on unmount
   React.useEffect(() => {

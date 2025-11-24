@@ -1,0 +1,24 @@
+# ExecuTorch Development Dependencies
+torch>=2.1.0
+torchvision>=0.16.0
+executorch>=1.0.0
+numpy>=1.21.0
+Pillow>=9.0.0
+opencv-python>=4.5.0
+matplotlib>=3.5.0
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Model conversion and optimization
+torch-audio>=2.1.0
+transformers>=4.20.0
+accelerate>=0.20.0
+
+# Development tools
+black>=22.0.0
+flake8>=4.0.0
+mypy>=0.950
+pytest>=7.0.0
+
+
+

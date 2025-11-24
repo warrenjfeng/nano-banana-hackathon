@@ -140,6 +140,104 @@ export const HAIRSTYLE_PRESETS: HairstyleOption[] = [
   }
 ];
 
+export const CLOTHING_PRESETS: HairstyleOption[] = [
+  {
+    id: 't-shirt',
+    name: 'T-Shirt',
+    description: 'Casual cotton tee',
+    prompt: 'Apply a casual cotton t-shirt in a solid color or simple pattern',
+    category: 'unisex'
+  },
+  {
+    id: 'dress-shirt',
+    name: 'Dress Shirt',
+    description: 'Formal button-up',
+    prompt: 'Apply a formal dress shirt, crisp and well-fitted',
+    category: 'unisex'
+  },
+  {
+    id: 'hoodie',
+    name: 'Hoodie',
+    description: 'Comfortable pullover',
+    prompt: 'Apply a comfortable hoodie with a hood and front pocket',
+    category: 'unisex'
+  },
+  {
+    id: 'blazer',
+    name: 'Blazer',
+    description: 'Professional jacket',
+    prompt: 'Apply a professional blazer or suit jacket',
+    category: 'unisex'
+  },
+  {
+    id: 'dress',
+    name: 'Dress',
+    description: 'Elegant dress',
+    prompt: 'Apply an elegant dress suitable for formal or semi-formal occasions',
+    category: 'women'
+  },
+  {
+    id: 'jeans',
+    name: 'Jeans',
+    description: 'Classic denim',
+    prompt: 'Apply classic blue jeans, well-fitted and comfortable',
+    category: 'unisex'
+  }
+];
+
+export const ACCESSORY_PRESETS: HairstyleOption[] = [
+  {
+    id: 'sunglasses',
+    name: 'Sunglasses',
+    description: 'Stylish shades',
+    prompt: 'Apply stylish sunglasses that complement the face shape',
+    category: 'unisex'
+  },
+  {
+    id: 'glasses',
+    name: 'Glasses',
+    description: 'Prescription frames',
+    prompt: 'Apply prescription glasses with stylish frames',
+    category: 'unisex'
+  },
+  {
+    id: 'hat',
+    name: 'Hat',
+    description: 'Casual cap',
+    prompt: 'Apply a casual baseball cap or similar hat',
+    category: 'unisex'
+  },
+  {
+    id: 'watch',
+    name: 'Watch',
+    description: 'Timepiece',
+    prompt: 'Apply a stylish watch on the wrist',
+    category: 'unisex'
+  },
+  {
+    id: 'earrings',
+    name: 'Earrings',
+    description: 'Elegant jewelry',
+    prompt: 'Apply elegant earrings that complement the face',
+    category: 'women'
+  },
+  {
+    id: 'necklace',
+    name: 'Necklace',
+    description: 'Statement piece',
+    prompt: 'Apply a stylish necklace or pendant',
+    category: 'unisex'
+  }
+];
+
 export const getHairstyleById = (id: string): HairstyleOption | undefined => {
   return HAIRSTYLE_PRESETS.find(style => style.id === id);
+};
+
+export const getClothingById = (id: string): HairstyleOption | undefined => {
+  return CLOTHING_PRESETS.find(style => style.id === id);
+};
+
+export const getAccessoryById = (id: string): HairstyleOption | undefined => {
+  return ACCESSORY_PRESETS.find(style => style.id === id);
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Header } from './components/Header';
 import { ImageUploader } from './components/ImageUploader';
@@ -51,6 +50,58 @@ const App: React.FC = () => {
     setError(null);
   }, []);
 
+  // Smart paste order: person first, then style
+  React.useEffect(() => {
+    const handlePaste = async (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          event.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            try {
+              const reader = new FileReader();
+              reader.onload = () => {
+                const base64String = (reader.result as string).split(',')[1];
+                const imageData = { base64: base64String, mimeType: file.type };
+                
+                // Smart paste order: person image first, then style
+                if (!personImage) {
+                  // No person image yet, paste to person
+                  setPersonImage(imageData);
+                } else if (!styleRequest) {
+                  // Person image exists but no style, paste to style
+                  const styleRequest: StyleRequest = {
+                    type: 'image',
+                    image: imageData
+                  };
+                  setStyleRequest(styleRequest);
+                } else {
+                  // Both exist, replace style
+                  const styleRequest: StyleRequest = {
+                    type: 'image',
+                    image: imageData
+                  };
+                  setStyleRequest(styleRequest);
+                }
+              };
+              reader.readAsDataURL(file);
+            } catch (error) {
+              console.error('Error processing pasted image:', error);
+            }
+          }
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [personImage, styleRequest]);
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center p-4 sm:p-6 lg:p-8">
@@ -64,6 +115,7 @@ const App: React.FC = () => {
                 title="1. Upload Your Photo"
                 description="A clear, front-facing photo works best."
                 onImageUpload={setPersonImage}
+                currentImage={personImage}
               />
               <StyleSelector
                 onStyleSelect={setStyleRequest}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import type { StyleRequest, ImageFile } from '../types';
-import { HAIRSTYLE_PRESETS } from '../constants/hairstyles';
+import { HAIRSTYLE_PRESETS, CLOTHING_PRESETS, ACCESSORY_PRESETS } from '../constants/hairstyles';
 
 interface StyleSelectorProps {
   onStyleSelect: (styleRequest: StyleRequest) => void;
@@ -13,15 +13,25 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({ onStyleSelect, sel
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<'hairstyles' | 'clothing' | 'accessories'>('hairstyles');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const handlePresetSelect = (presetId: string) => {
+    let preset;
+    if (currentCategory === 'hairstyles') {
+      preset = HAIRSTYLE_PRESETS.find(p => p.id === presetId);
+    } else if (currentCategory === 'clothing') {
+      preset = CLOTHING_PRESETS.find(p => p.id === presetId);
+    } else {
+      preset = ACCESSORY_PRESETS.find(p => p.id === presetId);
+    }
+
     const styleRequest: StyleRequest = {
       type: 'text',
       presetId,
-      text: HAIRSTYLE_PRESETS.find(p => p.id === presetId)?.name || ''
+      text: preset?.name || ''
     };
     onStyleSelect(styleRequest);
     setShowCustomInput(false);
@@ -194,41 +204,6 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({ onStyleSelect, sel
     }
   }, [isCameraActive]);
 
-  // Handle paste events for style images
-  React.useEffect(() => {
-    const handlePaste = async (event: ClipboardEvent) => {
-      const items = event.clipboardData?.items;
-      if (!items) return;
-
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.type.startsWith('image/')) {
-          event.preventDefault();
-          const file = item.getAsFile();
-          if (file) {
-            try {
-              const reader = new FileReader();
-              reader.onload = () => {
-                const base64String = (reader.result as string).split(',')[1];
-                const styleRequest: StyleRequest = {
-                  type: 'image',
-                  image: { base64: base64String, mimeType: file.type }
-                };
-                onStyleSelect(styleRequest);
-              };
-              reader.readAsDataURL(file);
-            } catch (error) {
-              console.error('Error processing pasted style image:', error);
-            }
-          }
-          break;
-        }
-      }
-    };
-
-    document.addEventListener('paste', handlePaste);
-    return () => document.removeEventListener('paste', handlePaste);
-  }, [onStyleSelect]);
 
   // Cleanup camera stream on unmount
   React.useEffect(() => {
@@ -243,7 +218,11 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({ onStyleSelect, sel
     if (!selectedStyle) return null;
     if (selectedStyle.type === 'image') return 'Custom Image';
     if (selectedStyle.presetId) {
-      return HAIRSTYLE_PRESETS.find(p => p.id === selectedStyle.presetId)?.name;
+      // Check all categories for the preset
+      let preset = HAIRSTYLE_PRESETS.find(p => p.id === selectedStyle.presetId);
+      if (!preset) preset = CLOTHING_PRESETS.find(p => p.id === selectedStyle.presetId);
+      if (!preset) preset = ACCESSORY_PRESETS.find(p => p.id === selectedStyle.presetId);
+      return preset?.name;
     }
     return selectedStyle.text;
   };
@@ -263,19 +242,37 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({ onStyleSelect, sel
         </div>
       )}
 
-      {/* Quick Access Buttons */}
+      {/* Category Selection */}
       <div className="mt-4">
-        <h4 className="text-sm font-medium text-gray-300 mb-3">Quick Access</h4>
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <h4 className="text-sm font-medium text-gray-300 mb-3">Categories</h4>
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <button
-            onClick={() => setShowCustomInput(true)}
-            className="p-2 text-xs rounded-lg border bg-blue-600/20 border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition-colors"
+            onClick={() => setCurrentCategory('hairstyles')}
+            className={`p-2 text-xs rounded-lg border transition-colors ${
+              currentCategory === 'hairstyles'
+                ? 'bg-purple-600/30 border-purple-500/50 text-purple-200'
+                : 'bg-gray-600/20 border-gray-500/30 text-gray-300 hover:bg-gray-600/30'
+            }`}
+          >
+            💇 Hairstyles
+          </button>
+          <button
+            onClick={() => setCurrentCategory('clothing')}
+            className={`p-2 text-xs rounded-lg border transition-colors ${
+              currentCategory === 'clothing'
+                ? 'bg-blue-600/30 border-blue-500/50 text-blue-200'
+                : 'bg-blue-600/20 border-blue-500/30 text-blue-300 hover:bg-blue-600/30'
+            }`}
           >
             👔 Clothing
           </button>
           <button
-            onClick={() => setShowCustomInput(true)}
-            className="p-2 text-xs rounded-lg border bg-green-600/20 border-green-500/30 text-green-300 hover:bg-green-600/30 transition-colors"
+            onClick={() => setCurrentCategory('accessories')}
+            className={`p-2 text-xs rounded-lg border transition-colors ${
+              currentCategory === 'accessories'
+                ? 'bg-green-600/30 border-green-500/50 text-green-200'
+                : 'bg-green-600/20 border-green-500/30 text-green-300 hover:bg-green-600/30'
+            }`}
           >
             👓 Accessories
           </button>
@@ -284,15 +281,49 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({ onStyleSelect, sel
 
       {/* Preset Buttons */}
       <div className="mt-4">
-        <h4 className="text-sm font-medium text-gray-300 mb-3">Popular Hairstyles</h4>
+        <h4 className="text-sm font-medium text-gray-300 mb-3">
+          {currentCategory === 'hairstyles' && 'Popular Hairstyles'}
+          {currentCategory === 'clothing' && 'Clothing Options'}
+          {currentCategory === 'accessories' && 'Accessory Options'}
+        </h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-          {HAIRSTYLE_PRESETS.map((style) => (
+          {currentCategory === 'hairstyles' && HAIRSTYLE_PRESETS.map((style) => (
             <button
               key={style.id}
               onClick={() => handlePresetSelect(style.id)}
               className={`p-2 text-xs rounded-lg border transition-colors ${
                 selectedStyle?.presetId === style.id
                   ? 'bg-purple-600 border-purple-500 text-white'
+                  : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600 hover:border-gray-500'
+              }`}
+              title={style.description}
+            >
+              <div className="font-medium">{style.name}</div>
+              <div className="text-xs opacity-75">{style.category}</div>
+            </button>
+          ))}
+          {currentCategory === 'clothing' && CLOTHING_PRESETS.map((style) => (
+            <button
+              key={style.id}
+              onClick={() => handlePresetSelect(style.id)}
+              className={`p-2 text-xs rounded-lg border transition-colors ${
+                selectedStyle?.presetId === style.id
+                  ? 'bg-blue-600 border-blue-500 text-white'
+                  : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600 hover:border-gray-500'
+              }`}
+              title={style.description}
+            >
+              <div className="font-medium">{style.name}</div>
+              <div className="text-xs opacity-75">{style.category}</div>
+            </button>
+          ))}
+          {currentCategory === 'accessories' && ACCESSORY_PRESETS.map((style) => (
+            <button
+              key={style.id}
+              onClick={() => handlePresetSelect(style.id)}
+              className={`p-2 text-xs rounded-lg border transition-colors ${
+                selectedStyle?.presetId === style.id
+                  ? 'bg-green-600 border-green-500 text-white'
                   : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600 hover:border-gray-500'
               }`}
               title={style.description}
